@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Digester Efficiency Predictor — Demo</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1b4332;--mid:#40916c;--light:#74c69d;--pale:#d8f3dc;
+  --border:#cbd5e1;--slate:#334155;--muted:#64748b;--bg:#f4f4f4;--white:#fff;--red:#dc2626;--amber:#d97706;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--slate);min-height:100vh;}
+.page-title{text-align:center;padding:2.5rem 1rem 1rem;}
+.page-title h1{font-size:1.4rem;font-weight:600;color:var(--green);}
+.container{max-width:720px;margin:0 auto;padding:0 1.5rem 4rem;}
+
+/* Steps */
+.steps{display:flex;align-items:center;margin-bottom:1.5rem;}
+.step-item{display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--muted);}
+.step-item.active{color:var(--green);font-weight:500;}
+.step-item.done{color:var(--mid);}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;flex-shrink:0;transition:background 0.3s,color 0.3s;}
+.step-item.active .step-num{background:var(--green);color:white;}
+.step-item.done .step-num{background:var(--mid);color:white;}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 0.75rem;}
+
+/* Card */
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:1rem;}
+.card-title{font-size:1rem;font-weight:600;color:var(--green);margin-bottom:1.25rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.field{display:flex;flex-direction:column;gap:0.3rem;}
+.field.full{grid-column:1/-1;}
+label{font-size:0.78rem;font-weight:500;color:var(--slate);}
+.unit{color:var(--muted);font-weight:400;}
+
+/* Inputs — look like real ones but read-only for demo */
+.demo-input{border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.75rem;font-size:0.875rem;color:var(--slate);background:#fafcfa;width:100%;font-family:inherit;transition:border-color 0.3s,background 0.3s;min-height:36px;}
+.demo-input.typing{border-color:var(--mid);background:white;color:var(--slate);}
+.demo-input.filled{border-color:var(--light);color:var(--slate);}
+.demo-input.empty{color:#b0c4b5;}
+
+/* Buttons */
+.btn-row{display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1rem;}
+.btn-primary{background:var(--green);color:white;border:none;padding:0.65rem 1.5rem;border-radius:8px;font-size:0.875rem;font-weight:500;cursor:pointer;font-family:inherit;transition:background 0.15s;}
+.btn-primary:hover{background:var(--mid);}
+.btn-secondary{background:white;color:var(--slate);border:1px solid var(--border);padding:0.65rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;font-family:inherit;}
+
+/* Screens */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* Results */
+.result-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:2.5rem 2rem;text-align:center;}
+.result-label{font-size:0.75rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;}
+.result-yield{font-size:4rem;font-weight:700;color:var(--green);line-height:1;margin-bottom:0.25rem;opacity:0;transition:opacity 0.6s;}
+.result-yield.show{opacity:1;}
+.result-unit{font-size:0.9rem;color:var(--muted);margin-bottom:1rem;}
+.result-range{display:inline-block;background:var(--pale);color:var(--green);font-size:0.8rem;font-weight:500;padding:0.35rem 1rem;border-radius:100px;margin-bottom:1.75rem;opacity:0;transition:opacity 0.5s 0.4s;}
+.result-range.show{opacity:1;}
+.eff-wrap{margin:0 auto 1.75rem;max-width:360px;text-align:left;}
+.eff-labels{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:0.4rem;}
+.eff-track{height:8px;background:var(--border);border-radius:100px;overflow:hidden;}
+.eff-fill{height:100%;border-radius:100px;width:0%;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);}
+.divider{height:1px;background:var(--border);margin:1.5rem 0;}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;max-width:360px;margin:0 auto 1.5rem;}
+.metric{background:#f8faf9;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:left;opacity:0;transform:translateY(8px);transition:opacity 0.4s,transform 0.4s;}
+.metric.show{opacity:1;transform:none;}
+.metric-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;}
+.metric-val{font-size:1.05rem;font-weight:600;color:var(--slate);}
+
+/* Demo controls */
+.demo-controls{display:flex;justify-content:center;gap:0.75rem;margin-top:1.5rem;}
+.ctrl{padding:0.6rem 1.4rem;border-radius:8px;font-size:0.825rem;font-weight:500;cursor:pointer;font-family:inherit;border:none;transition:all 0.15s;}
+.ctrl-play{background:var(--green);color:white;}
+.ctrl-play:hover{background:var(--mid);}
+.ctrl-reset{background:white;color:var(--slate);border:1px solid var(--border);}
+.ctrl-reset:hover{background:var(--bg);}
+</style>
+</head>
+<body>
+
+<div class="page-title"><h1>Digester Efficiency Predictor Model</h1></div>
+
+<div class="container">
+
+  <!-- Step indicator -->
+  <div class="steps" id="stepIndicator">
+    <div class="step-item active" id="si1"><div class="step-num">1</div><span>Feedstock &amp; Loading</span></div>
+    <div class="step-line"></div>
+    <div class="step-item" id="si2"><div class="step-num">2</div><span>Digester Conditions</span></div>
+  </div>
+
+  <!-- Screen 1 -->
+  <div class="screen active" id="screen1">
+    <div class="card">
+      <div class="card-title">Feedstock &amp; Loading</div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Feedstock type</label>
+          <div class="demo-input empty" id="f-feedstock">e.g. Food waste</div>
+        </div>
+        <div class="field">
+          <label>Daily input <span class="unit">(t/day)</span></label>
+          <div class="demo-input empty" id="f-input">e.g. 60</div>
+        </div>
+        <div class="field">
+          <label>Total solids — TS <span class="unit">(%)</span></label>
+          <div class="demo-input empty" id="f-ts">e.g. 22</div>
+        </div>
+        <div class="field">
+          <label>VS/TS <span class="unit">(% of TS)</span></label>
+          <div class="demo-input empty" id="f-vs">e.g. 85</div>
+        </div>
+        <div class="field">
+          <label>OLR <span class="unit">(kg VS/m³/day)</span></label>
+          <div class="demo-input empty" id="f-olr">e.g. 4.8</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" id="nextBtn1" onclick="goScreen(2)" style="opacity:0.4;pointer-events:none;">Next →</button>
+    </div>
+  </div>
+
+  <!-- Screen 2 -->
+  <div class="screen" id="screen2">
+    <div class="card">
+      <div class="card-title">Digester Conditions</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Temperature <span class="unit">(°C)</span></label>
+          <div class="demo-input empty" id="f-temp">e.g. 38</div>
+        </div>
+        <div class="field">
+          <label>HRT <span class="unit">(days)</span></label>
+          <div class="demo-input empty" id="f-hrt">e.g. 18</div>
+        </div>
+        <div class="field">
+          <label>Volume <span class="unit">(m³)</span></label>
+          <div class="demo-input empty" id="f-vol">e.g. 2000</div>
+        </div>
+        <div class="field">
+          <label>pH</label>
+          <div class="demo-input empty" id="f-ph">e.g. 7.6</div>
+        </div>
+        <div class="field">
+          <label>Ammonia-N <span class="unit">(mg/L)</span></label>
+          <div class="demo-input empty" id="f-ammonia">e.g. 1800</div>
+        </div>
+        <div class="field">
+          <label>VFA:Alkalinity</label>
+          <div class="demo-input empty" id="f-vfa">e.g. 0.25</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goScreen(1)">← Back</button>
+      <button class="btn-primary" id="runBtn" onclick="goScreen(3)" style="opacity:0.4;pointer-events:none;">Run Analysis</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Results -->
+  <div class="screen" id="screen3">
+    <div class="result-card">
+      <div class="result-label">Predicted Biogas Yield</div>
+      <div class="result-yield" id="resYield">65.4</div>
+      <div class="result-unit">m³ per tonne of input</div>
+      <div class="result-range" id="resRange">39 – 90 m³/t range</div>
+      <div class="eff-wrap">
+        <div class="eff-labels"><span>Efficiency vs benchmark</span><span>36%</span></div>
+        <div class="eff-track"><div class="eff-fill" id="effFill" style="background:#dc2626;"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="metrics">
+        <div class="metric" id="rfTile"><div class="metric-label">Random Forest</div><div class="metric-val">62.4 m³/t</div></div>
+        <div class="metric" id="xgbTile"><div class="metric-label">XGBoost</div><div class="metric-val">70.0 m³/t</div></div>
+      </div>
+      <button class="btn-secondary" onclick="resetDemo()">← Analyse Another Plant</button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="demo-controls">
+    <button class="ctrl ctrl-play" id="playBtn" onclick="startDemo()">▶ Play Demo</button>
+  </div>
+
+</div>
+
+<script>
+  const data1 = [
+    {id:'f-feedstock', val:'Food waste'},
+    {id:'f-input',     val:'60'},
+    {id:'f-ts',        val:'22'},
+    {id:'f-vs',        val:'85'},
+    {id:'f-olr',       val:'4.8'},
+  ];
+  const data2 = [
+    {id:'f-temp',    val:'38'},
+    {id:'f-hrt',     val:'18'},
+    {id:'f-vol',     val:'2000'},
+    {id:'f-ph',      val:'7.6'},
+    {id:'f-ammonia', val:'3400'},
+    {id:'f-vfa',     val:'0.48'},
+  ];
+
+  let timer = null;
+  let running = false;
+
+  function goScreen(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen'+n).classList.add('active');
+    [1,2].forEach(i => {
+      const si = document.getElementById('si'+i);
+      if (si) { si.classList.remove('active','done'); }
+      if (n > 2) { si && si.classList.add('done'); }
+      else if (i < n) { si && si.classList.add('done'); }
+      else if (i === n) { si && si.classList.add('active'); }
+    });
+    if (n === 3) {
+      document.getElementById('stepIndicator').style.display = 'none';
+      animateResults();
+    } else {
+      document.getElementById('stepIndicator').style.display = 'flex';
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function typeInto(id, value, cb) {
+    const el = document.getElementById(id);
+    el.classList.remove('empty');
+    el.classList.add('typing');
+    el.textContent = '';
+    let i = 0;
+    const chars = value.split('');
+    const t = setInterval(() => {
+      if (i < chars.length) { el.textContent += chars[i]; i++; }
+      else { clearInterval(t); el.classList.remove('typing'); el.classList.add('filled'); if(cb) cb(); }
+    }, 55);
+  }
+
+  function fillSequence(items, onDone, btnId) {
+    let i = 0;
+    function next() {
+      if (i >= items.length) { 
+        if (btnId) { const b = document.getElementById(btnId); b.style.opacity='1'; b.style.pointerEvents='auto'; }
+        if (onDone) setTimeout(onDone, 600); 
+        return; 
+      }
+      typeInto(items[i].id, items[i].val, () => { i++; setTimeout(next, 200); });
+    }
+    next();
+  }
+
+  function animateResults() {
+    setTimeout(() => document.getElementById('resYield').classList.add('show'), 200);
+    setTimeout(() => document.getElementById('resRange').classList.add('show'), 500);
+    setTimeout(() => document.getElementById('effFill').style.width = '36%', 700);
+    setTimeout(() => document.getElementById('rfTile').classList.add('show'), 1200);
+    setTimeout(() => document.getElementById('xgbTile').classList.add('show'), 1500);
+    setTimeout(() => { running = false; document.getElementById('playBtn').textContent = '▶ Play Again'; }, 1800);
+  }
+
+  function startDemo() {
+    if (running) return;
+    running = true;
+    resetFields();
+    goScreen(1);
+    document.getElementById('playBtn').textContent = '⏸ Running...';
+    setTimeout(() => {
+      fillSequence(data1, () => {
+        setTimeout(() => {
+          goScreen(2);
+          setTimeout(() => {
+            fillSequence(data2, () => {
+              setTimeout(() => goScreen(3), 800);
+            }, 'runBtn');
+          }, 400);
+        }, 400);
+      }, 'nextBtn1');
+    }, 300);
+  }
+
+  function resetFields() {
+    const placeholders = {
+      'f-feedstock':'e.g. Food waste','f-input':'e.g. 60','f-ts':'e.g. 22','f-vs':'e.g. 85','f-olr':'e.g. 4.8',
+      'f-temp':'e.g. 38','f-hrt':'e.g. 18','f-vol':'e.g. 2000','f-ph':'e.g. 7.6','f-ammonia':'e.g. 1800','f-vfa':'e.g. 0.25'
+    };
+    Object.keys(placeholders).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = placeholders[id]; el.className = 'demo-input empty'; }
+    });
+    ['nextBtn1','runBtn'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) { b.style.opacity='0.4'; b.style.pointerEvents='none'; }
+    });
+    document.getElementById('resYield').classList.remove('show');
+    document.getElementById('resRange').classList.remove('show');
+    document.getElementById('effFill').style.width = '0%';
+    document.getElementById('rfTile').classList.remove('show');
+    document.getElementById('xgbTile').classList.remove('show');
+  }
+
+  function resetDemo() {
+    clearTimeout(timer);
+    running = false;
+    resetFields();
+    goScreen(1);
+    document.getElementById('playBtn').textContent = '▶ Play Demo';
+  }
+</script>
+</body>
+</html>
