@@ -76,15 +76,3 @@ alps-ml-model/
 ├── api.py                        ← API endpoint
 └── requirements.txt
 ```
-
----
-
-## Next steps
-
-- Add more real plant data from ALPS clients
-- Deploy API online so the frontend can call it live
-- Upgrade to LSTM once we have 12+ months of daily data per plant
-
----
-
-*ALPS Ecoscience*
