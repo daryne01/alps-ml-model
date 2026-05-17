@@ -1,9 +1,18 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import Optional
 from predict import predict_biogas
 
-app = FastAPI(title="ALPS Biogas Predictor API")
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class DigestorInput(BaseModel):
@@ -20,14 +29,14 @@ class DigestorInput(BaseModel):
     vfa_alk:     Optional[float] = None
 
 
+@app.get("/", response_class=HTMLResponse)
+def index():
+    return open("index.html", encoding="utf-8").read()
+
+
 @app.post("/predict")
 def predict(data: DigestorInput):
     try:
         return predict_biogas(data.dict())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}

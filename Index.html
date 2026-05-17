@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digester Efficiency Predictor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1b4332; --mid: #40916c; --pale: #d8f3dc;
+      --border: #cbd5e1; --slate: #334155; --muted: #64748b;
+      --bg: #f4f4f4; --white: #ffffff; --red: #dc2626;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--slate); min-height: 100vh; }
+    .page-title { text-align: center; padding: 2.5rem 1rem 1rem; }
+    .page-title h1 { font-size: 1.4rem; font-weight: 600; color: var(--green); }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    .steps { display: flex; align-items: center; margin-bottom: 1.5rem; }
+    .step-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+    .step-item.active { color: var(--green); font-weight: 500; }
+    .step-item.done { color: var(--mid); }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; }
+    .step-item.active .step-num { background: var(--green); color: white; }
+    .step-item.done .step-num { background: var(--mid); color: white; }
+    .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 0.75rem; }
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; margin-bottom: 1rem; }
+    .card-title { font-size: 1rem; font-weight: 600; color: var(--green); margin-bottom: 1.25rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 0.78rem; font-weight: 500; color: var(--slate); }
+    .unit { color: var(--muted); font-weight: 400; }
+    input, select { border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.75rem; font-size: 0.875rem; color: var(--slate); background: #fafcfa; outline: none; width: 100%; transition: border-color 0.15s; font-family: inherit; }
+    input:focus, select:focus { border-color: var(--mid); background: white; }
+    input::placeholder { color: #b0c4b5; }
+    .btn-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+    .btn-primary { background: var(--green); color: white; border: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; font-family: inherit; }
+    .btn-primary:hover { background: var(--mid); }
+    .btn-secondary { background: white; color: var(--slate); border: 1px solid var(--border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.875rem; cursor: pointer; font-family: inherit; }
+    .error-banner { display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.75rem 1rem; color: var(--red); font-size: 0.825rem; margin-top: 0.75rem; }
+    .error-banner.visible { display: block; }
+    #results { display: none; }
+    .result-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem 2rem; text-align: center; }
+    .result-label { font-size: 0.75rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.5rem; }
+    .result-yield { font-size: 4rem; font-weight: 700; color: var(--green); line-height: 1; margin-bottom: 0.25rem; }
+    .result-unit { font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; }
+    .result-range { display: inline-block; background: var(--pale); color: var(--green); font-size: 0.8rem; font-weight: 500; padding: 0.35rem 1rem; border-radius: 100px; margin-bottom: 1.75rem; }
+    .eff-wrap { margin: 0 auto 1.75rem; max-width: 360px; text-align: left; }
+    .eff-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.4rem; }
+    .eff-track { height: 8px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .eff-fill { height: 100%; border-radius: 100px; transition: width 0.9s ease; }
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; max-width: 360px; margin: 0 auto 1.5rem; }
+    .metric { background: #f8faf9; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: left; }
+    .metric-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+    .metric-val { font-size: 1.05rem; font-weight: 600; color: var(--slate); }
+  </style>
+</head>
+<body>
+
+<div class="page-title"><h1>Digester Efficiency Predictor Model</h1></div>
+
+<div class="container">
+  <div class="steps" id="stepIndicator">
+    <div class="step-item active" id="si1"><div class="step-num">1</div><span>Feedstock &amp; Loading</span></div>
+    <div class="step-line"></div>
+    <div class="step-item" id="si2"><div class="step-num">2</div><span>Digester Conditions</span></div>
+  </div>
+
+  <div id="step1">
+    <div class="card">
+      <div class="card-title">Feedstock &amp; Loading</div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Feedstock type</label>
+          <select id="feedstock">
+            <option value="">— Select feedstock —</option>
+            <option>Food waste</option>
+            <option>Agricultural slurry</option>
+            <option>Energy crops (maize silage)</option>
+            <option>Sewage sludge</option>
+            <option>Industrial organic waste</option>
+            <option>Mixed co-digestion</option>
+            <option>Animal manure</option>
+            <option>Crop residues</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Daily input <span class="unit">(t/day)</span></label>
+          <input type="number" id="dailyInput" placeholder="e.g. 60" min="0" step="0.1" />
+        </div>
+        <div class="field">
+          <label>Total solids — TS <span class="unit">(%)</span></label>
+          <input type="number" id="ts" placeholder="e.g. 22" min="0" max="100" step="0.1" />
+        </div>
+        <div class="field">
+          <label>VS/TS <span class="unit">(% of TS)</span></label>
+          <input type="number" id="vsTs" placeholder="e.g. 85" min="0" max="100" step="0.1" />
+        </div>
+        <div class="field">
+          <label>OLR <span class="unit">(kg VS/m³/day)</span></label>
+          <input type="number" id="olr" placeholder="e.g. 4.8" min="0" step="0.1" />
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goTo(2)">Next →</button>
+    </div>
+  </div>
+
+  <div id="step2" style="display:none">
+    <div class="card">
+      <div class="card-title">Digester Conditions</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Temperature <span class="unit">(°C)</span></label>
+          <input type="number" id="temp" placeholder="e.g. 38" min="0" max="80" step="0.1" />
+        </div>
+        <div class="field">
+          <label>HRT <span class="unit">(days)</span></label>
+          <input type="number" id="hrt" placeholder="e.g. 18" min="0" step="0.1" />
+        </div>
+        <div class="field">
+          <label>Volume <span class="unit">(m³)</span></label>
+          <input type="number" id="volume" placeholder="e.g. 2000" min="0" step="1" />
+        </div>
+        <div class="field">
+          <label>pH</label>
+          <input type="number" id="ph" placeholder="e.g. 7.6" min="0" max="14" step="0.01" />
+        </div>
+        <div class="field">
+          <label>Ammonia-N <span class="unit">(mg/L)</span></label>
+          <input type="number" id="ammonia" placeholder="e.g. 1800" min="0" step="1" />
+        </div>
+        <div class="field">
+          <label>VFA:Alkalinity</label>
+          <input type="number" id="vfa" placeholder="e.g. 0.25" min="0" step="0.01" />
+        </div>
+      </div>
+    </div>
+    <div class="error-banner" id="errorBanner"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(1)">← Back</button>
+      <button class="btn-primary" onclick="runAnalysis()">Run Analysis</button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="result-card">
+      <div class="result-label">Predicted Biogas Yield</div>
+      <div class="result-yield" id="yieldVal">—</div>
+      <div class="result-unit">m³ per tonne of input</div>
+      <div class="result-range" id="yieldRange">—</div>
+      <div class="eff-wrap">
+        <div class="eff-labels"><span>Efficiency vs benchmark</span><span id="effPct">—</span></div>
+        <div class="eff-track"><div class="eff-fill" id="effBar" style="width:0%"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Random Forest</div><div class="metric-val" id="rfVal">—</div></div>
+        <div class="metric"><div class="metric-label">XGBoost</div><div class="metric-val" id="xgbVal">—</div></div>
+      </div>
+      <button class="btn-secondary" onclick="restart()">← Analyse Another Plant</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function goTo(step) {
+    [1,2].forEach(n => {
+      document.getElementById('step'+n).style.display = n===step ? 'block' : 'none';
+      const si = document.getElementById('si'+n);
+      si.classList.remove('active','done');
+      if (n < step) si.classList.add('done');
+      if (n === step) si.classList.add('active');
+    });
+    document.getElementById('results').style.display = 'none';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function val(id) {
+    const v = document.getElementById(id).value.trim();
+    return v === '' ? null : isNaN(v) ? v : parseFloat(v);
+  }
+
+  async function runAnalysis() {
+    const err = document.getElementById('errorBanner');
+    err.classList.remove('visible');
+    if (!document.getElementById('feedstock').value) {
+      err.textContent = 'Please select a feedstock type on step 1.';
+      err.classList.add('visible');
+      return;
+    }
+    const payload = { feedstock: document.getElementById('feedstock').value };
+    const map = {dailyInput:'daily_input',ts:'ts',vsTs:'vs_ts',olr:'olr',temp:'temperature',hrt:'hrt',volume:'volume',ph:'ph',ammonia:'ammonia',vfa:'vfa_alk'};
+    Object.keys(map).forEach(id => { const v = val(id); if (v !== null) payload[map[id]] = v; });
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('API error ' + res.status);
+      showResults(await res.json());
+    } catch(e) {
+      err.textContent = 'Analysis failed: ' + e.message;
+      err.classList.add('visible');
+    }
+  }
+
+  function showResults(r) {
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('stepIndicator').style.display = 'none';
+    const y = r.predicted_yield_m3_per_tonne;
+    const pct = Math.min(100, Math.round((y / 180) * 100));
+    const color = pct >= 70 ? '#40916c' : pct >= 45 ? '#d97706' : '#dc2626';
+    document.getElementById('yieldVal').textContent = y.toFixed(1);
+    document.getElementById('yieldRange').textContent = r.confidence_range.lower + ' – ' + r.confidence_range.upper + ' m³/t range';
+    document.getElementById('rfVal').textContent = r.rf_prediction.toFixed(1) + ' m³/t';
+    document.getElementById('xgbVal').textContent = r.xgb_prediction.toFixed(1) + ' m³/t';
+    document.getElementById('effPct').textContent = pct + '%';
+    const bar = document.getElementById('effBar');
+    bar.style.background = color;
+    setTimeout(() => bar.style.width = pct + '%', 80);
+    document.getElementById('results').style.display = 'block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function restart() {
+    document.getElementById('stepIndicator').style.display = 'flex';
+    document.getElementById('results').style.display = 'none';
+    goTo(1);
+  }
+</script>
+</body>
+</html>
