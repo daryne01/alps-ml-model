@@ -1,65 +1,90 @@
-<p>
-Taken from <a href="https://github.com/abhat222/Data-Science--Cheat-Sheet"><strong>Link to original GitHub page</strong></a>
-</p>
- 
-# Data Science Cheatsheets
+# ALPS Ecoscience — Biogas Yield Prediction Model
 
-List of Data Science Cheatsheets :
+A machine learning model that predicts biogas yield from anaerobic digestion plants using feedstock and operating data.
 
-## Table of Contents
-- [Artificial Intelligence](Artificial%20Intelligence/README.md)
-- [Big Data](Big%20Data/README.md)
-- [Data Engineering](Data%20Engineering/README.md)
-- [Data Mining](Data%20Mining/README.md)
-- [Data Science](Data%20Science/README.md)
-- [Data Visualization](Data%20Visualization/README.md)
-- [Data Warehouse](Data%20Warehouse/README.md)
-- [Deep Learning](Deep%20Learning/README.md)
-- [DevOps](DevOps/README.md)
-- [Docker & Kubernetes](Docker%20&%20Kubernetes/README.md)
-- [Excel](Excel/README.md)
-- [Git](Git/README.md)
-- [Images](Images//README.md)
-- [Interview Questions](Interview%20Questions/README.md)
-- [Linux](Linux/README.md)
-- [Machine Learning](https://github.com/abhat222/Data-Science--Cheat-Sheet#machine-learning)
-- [Mathematics](Mathematics/README.md)
-- [Matlab](Matlab/README.md)
-- [NLP](NLP/README.md)
-- [Numpy](Numpy/README.md)
-- [Ordinary Differential Equations](Ordinary%20Differential%20Equations/README.md)
-- [Pandas](Pandas/README.md)
-- [Probability](Probability/README.md)
-- [Python](Python/README.md)
-- [Scala](Scala/README.md)
-- [SQL](SQL/README.md)
-- [Statistics](Statistics/README.md)
+---
 
-# Python
+## What it does
 
-<a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Python/Python_cheatsheet.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/python_cheatsheet.PNG?" alt="Illustration" width="415px"/> &nbsp; &nbsp; &nbsp;</a><a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Python/spaCy.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/SpaCy.PNG?" alt="Illustration" width="415px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>Python Cheat Sheet</b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Spacy Cheat Sheet<b><br/>
-  
+Takes in plant operating data (feedstock type, temperature, pH, ammonia levels etc.) and predicts how much biogas the plant should be producing. If the actual yield is lower than predicted, something is wrong.
 
-<a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Pandas/pandas_cheat_sheet.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/DA_Pandas.PNG?" alt="Illustration" height="320px" width="415px"/> &nbsp; &nbsp; &nbsp;</a><a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Pandas/Reading%20and%20Writing%20data%20with%20PANDAS.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/RW_Panda.PNG?" alt="Illustration" width="415px" height="320px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>Data Analysis with Pandas<b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>Pandas (Reading and Writing Data)<b><br/>
+---
 
+## Why Random Forest + XGBoost
 
-<a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Python/python-cheatsheets-ds.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/PythonForDS.PNG?" alt="Illustration" height="300px" width="415px"/> &nbsp; &nbsp; &nbsp;</a><a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Numpy/100_numpy_exercises.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/101_numpy_exercises.jpg?" alt="Illustration" width="415px" height="300px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>Python for Data Science<b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>100 Numpy Exercises<b><br/>
+Two models are combined because neither is perfect on its own.
 
+**Random Forest** is reliable and handles missing data well. It also tells you which inputs matter most — useful for explaining to a client why their yield is low.
 
-<a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Python/Python%20for%20Data%20Analysis.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/pythonforDA.PNG?" alt="Illustration" height="300px" width="415px"/> &nbsp; &nbsp; &nbsp;</a><a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Pandas/pandas-10min.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/Pandas_10mins.PNG?" alt="Illustration" width="415px" height="300px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>Python for Data Analysis<b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <b>10 Minutes to Pandas<b><br/>
+**XGBoost** is better at picking up on combined problems — for example when high ammonia and short retention time are both happening at the same time. One model on its own would miss that.
 
+Combined they are more accurate than either alone. The final prediction is 60% Random Forest and 40% XGBoost.
 
+---
 
-# R Language
+## What data it needs
 
-<a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/R%20Cheat%20Sheet/R%20Cheat%20Sheets.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/R_cheatsheet.PNG?" alt="Illustration" height="300px" width="415px"/> &nbsp; &nbsp; &nbsp;</a><a href="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/R%20Cheat%20Sheet/R%20Programming%20Cheat%20Sheet.pdf"><img src="https://github.com/abhat222/Data-Science--Cheat-Sheet/blob/master/Images/R.PNG?" alt="Illustration" width="415px" height="300px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <b>R Cheat Sheet<b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  <b>R (Basics & Advanced)<b><br/>
+One row per plant observation. The more rows the better — 50 minimum, 200+ ideal.
 
+| Column | Example |
+|---|---|
+| feedstock | Food waste |
+| daily_input | 60 |
+| ts | 22 |
+| vs_ts | 85 |
+| olr | 4.8 |
+| temperature | 38 |
+| hrt | 18 |
+| volume | 2000 |
+| ph | 7.6 |
+| ammonia | 3400 |
+| vfa_alk | 0.48 |
+| biogas_yield | 72 |
+| methane_pct | 52 |
 
-# Machine Learning
+Blank cells are fine — the model fills gaps automatically.
 
-<a href="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Machine%20Learning/Applied%20Machine%20Learning%20Problem%20Solving%20Framework.jpg"><img src="https://raw.githubusercontent.com/abhat222/Data-Science--Cheat-Sheet/master/Machine%20Learning/Applied%20Machine%20Learning%20Problem%20Solving%20Framework.jpg" alt="Illustration" height="300px" width="415px"/> &nbsp; &nbsp; &nbsp; </a><a href="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Machine%20Learning/Cheat%20Sheet%20Algorithms%20for%20Supervised%20and%20Unsupervised%20Learning.pdf"><img src="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Images/supervised-and-unsupervised-learning.PNG?" alt="Illustration" width="415px" height="300px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <b>R Cheat Sheet<b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  <b>Machine Learning<b><br/>
+---
 
+## How to run it
 
-# Deep Learning
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-<a href="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Deep%20Learning/Coursera%20Deep%20Learning%20course%20Notes.pdf"><img src="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Images/coursera-deep-learning.PNG" alt="Illustration" height="300px" width="415px"/> &nbsp; &nbsp; &nbsp; </a><a href="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Deep%20Learning/super-cheatsheet-deep-learning.pdf"><img src="https://github.com/cyborg-girl/Data-Science--Cheat-Sheet/blob/master/Images/super-cheatsheet-deep-learning.PNG" alt="Illustration" width="415px" height="300px"/></a> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <b>R Cheat Sheet<b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  <b>Machine Learning<b><br/>
+Train the model:
+```bash
+python train_model.py
+```
+
+Start the API:
+```bash
+uvicorn api:app --reload --port 8000
+```
+
+---
+
+## Files
+
+```
+alps-ml-model/
+├── data/plant_observations.csv   ← training data
+├── models/                       ← saved models go here after training
+├── train_model.py                ← builds the model
+├── predict.py                    ← runs predictions
+├── api.py                        ← API endpoint
+└── requirements.txt
+```
+
+---
+
+## Next steps
+
+- Add more real plant data from ALPS clients
+- Deploy API online so the frontend can call it live
+- Upgrade to LSTM once we have 12+ months of daily data per plant
+
+---
+
+*ALPS Ecoscience*
